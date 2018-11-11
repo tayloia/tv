@@ -230,6 +230,9 @@ function TV(data) {
       AddChannelHeader(tr, data.channels[p.channelid]);
       var td = tr.insertCell();
       var url = "https://letterboxd.com/search/" + p.name.toLowerCase().replace(/[^a-z0-9]+/g, "+") + "/";
+      if (p.rating) {
+        td.className = "rating-" + p.rating.toLowerCase();
+      }
       var html = "<a target='_blank' href='" + url + "'>" + p.name + "</a>" + GetExtra(p) + "<div class='description'>" + p.description + "</div>";
       for (var j = 0; j < m.length; ++j) {
         html += "<div class='when'>" + GetWhen(m[j]) + "</div>";
