@@ -1,3 +1,3 @@
 @echo off
 node tv-pull.js >tv-data.js
-start tv.html
+start chrome file://%CD%\tv.html?movies

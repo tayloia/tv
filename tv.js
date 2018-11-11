@@ -41,8 +41,8 @@ function TV(data) {
     return when.toString().slice(0, 21);
   }
   function ComputeMatrix(p, t) {
-    var matrix = [];
-    for (var i = Object.keys(data.channels).length; i >= 0; --i) {
+    var i, item, matrix = [];
+    for (i = Object.keys(data.channels).length; i >= 0; --i) {
       matrix.push([{ lbound: 0, ubound: t.length }]);
     }
     var prev = null;
@@ -51,23 +51,23 @@ function TV(data) {
       var next = LocalTime(t[ubound]).slice(0, 15);
       if (prev !== next) {
         if (lbound > 0) {
-          var item = {
+          item = {
             date: prev,
             lbound: lbound,
             ubound: ubound
-          }
+          };
           InsertItem(matrix[0], item);
         }
         prev = next;
         lbound = ubound;
       }
     }
-    for (var i = 0; i < p.length; ++i) {
-      var item = {
+    for (i = 0; i < p.length; ++i) {
+      item = {
         programme: p[i],
         lbound: t.indexOf(p[i].lbound),
         ubound: t.indexOf(p[i].ubound)
-      }
+      };
       InsertItem(matrix[data.channels[p[i].channelid].order + 1], item);
     }
     return matrix;
@@ -122,7 +122,7 @@ function TV(data) {
       cell.innerHTML += GetExtra(p);
       cell.title = tooltip.join("\n");
     }
-    cell.className = (genre && genre.id) || "genre-missing";
+    cell.className = genre && genre.id || "genre-missing";
   }
   function SetRowCell(row, item) {
     var cell = tbody.rows[row - 1].insertCell();
@@ -143,13 +143,12 @@ function TV(data) {
     var genre = data.genres[channel.epggenre];
     var cell = tr.insertCell();
     cell.className = genre.id + " " + channel.id;
-    var tooltip = [channel.name, ];
     cell.title = channel.name + "\n" + genre.name;
   }
   function AddIndexHeader(tr, index) {
     var c = {};
     for (var i in data.channels) {
-      if ((data.channels[i].order + 1) === index) {
+      if (data.channels[i].order + 1 === index) {
         c = data.channels[i];
         break;
       }
@@ -171,13 +170,14 @@ function TV(data) {
     table.appendChild(tfoot.parentNode);
     var times = ComputeTimes(data.programmes);
     var matrix = ComputeMatrix(data.programmes, times);
-    for (var j = 0; j < matrix[0].length; ++j) {
+    var i, j;
+    for (j = 0; j < matrix[0].length; ++j) {
       SetRowTime(thead, matrix[0][j]);
       SetRowTime(tfoot, matrix[0][j]);
     }
-    for (var i = 1; i < matrix.length; ++i) {
+    for (i = 1; i < matrix.length; ++i) {
       AddRowHeader(i);
-      for (var j = 0; j < matrix[i].length; ++j) {
+      for (j = 0; j < matrix[i].length; ++j) {
         SetRowCell(i, matrix[i][j]);
       }
     }
@@ -189,16 +189,17 @@ function TV(data) {
     var tfoot = CreateHeaderRow("tfoot");
     table.appendChild(tfoot.parentNode);
     var times = ComputeTimes(data.programmes);
-    for (var i = 0; i < times.length; ++i) {
+    var i, j;
+    for (i = 0; i < times.length; ++i) {
       tbody.insertRow();
     }
     var matrix = ComputeMatrix(data.programmes, times);
-    for (var j = 0; j < matrix[0].length; ++j) {
+    for (j = 0; j < matrix[0].length; ++j) {
       SetColumnTime(matrix[0][j]);
     }
-    for (var i = 1; i < matrix.length; ++i) {
+    for (i = 1; i < matrix.length; ++i) {
       AddColumnHeader(thead, i);
-      for (var j = 0; j < matrix[i].length; ++j) {
+      for (j = 0; j < matrix[i].length; ++j) {
         SetColumnCell(matrix[i][j]);
       }
       AddColumnHeader(tfoot, i);
@@ -207,12 +208,13 @@ function TV(data) {
   function DisplayMovies() {
     table.className = "by-movies";
     var movies = {};
-    for (var i = 0; i < data.programmes.length; ++i) {
-      var p = data.programmes[i];
+    var i, m, p;
+    for (i = 0; i < data.programmes.length; ++i) {
+      p = data.programmes[i];
       var genre = data.genres[p.genre];
-      if (genre && (genre.id === "genre-movies")) {
+      if (genre && genre.id === "genre-movies") {
         ComputeTime(p);
-        var m = movies[p.name];
+        m = movies[p.name];
         if (!m) {
           m = movies[p.name] = [];
         }
@@ -221,9 +223,9 @@ function TV(data) {
     }
     movies = Object.values(movies);
     movies.sort(function (a, b) { return a[0].start.localeCompare(b[0].start); });
-    for (var i = 0; i < movies.length; ++i) {
-      var m = movies[i];
-      var p = m[0];
+    for (i = 0; i < movies.length; ++i) {
+      m = movies[i];
+      p = m[0];
       var tr = tbody.insertRow();
       AddChannelHeader(tr, data.channels[p.channelid]);
       var td = tr.insertCell();

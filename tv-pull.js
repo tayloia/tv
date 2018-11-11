@@ -78,7 +78,7 @@ function Pull(ids) {
     if (data.parentalrating.v !== "--") {
       programme.rating = data.parentalrating.v.trim();
     }
-    if (data.genre && data.shortDesc && genres[data.genre] && (genres[data.genre].name === "Movies")) {
+    if (data.genre && data.shortDesc && genres[data.genre] && genres[data.genre].name === "Movies") {
       var match = /\((19\d\d|20\d\d)\)/.exec(data.shortDesc) || /\[(19\d\d|20\d\d)\]/.exec(data.shortDesc) || /, (19\d\d|20\d\d)\./.exec(data.shortDesc) || /^(19\d\d|20\d\d)\./.exec(data.shortDesc);
       if (match) {
         programme.year = +match[1];
@@ -144,7 +144,7 @@ function Pull(ids) {
     genres[data.genreid] = {
       id: ToID(prefix + data.name),
       name: data.name
-    }
+    };
   }
 
   function OnInit(data) {
@@ -190,32 +190,35 @@ if (process.argv.length > 2) {
     6260, // ITV3
     6272, // ITV4
     6508, // ITVBe
-    3028, // My5
+    3028, // 5SELECT (My5)
     3022, // 5 USA
     3023, // 5STAR
     2085, // BBC NEWS HD
-    2051, // BBC RB1
     3605, // horror channel
+    1065, // BLAZE
     4610, // CBS Action
     3617, // CBS Drama
     3352, // CBS Reality
-    3590, // Food Network
     2202, // Challenge
-    1872, // Community
     2306, // Dave
     2612, // Drama
+    3590, // Food Network
+    5415, // Forces TV
     3708, // movies4men
+    1036, // Paramount
+    5500, // PBS America
     1832, // Pick
     6761, // QUEST
+    2411, // Quest Red
     2325, // Really
     3709, // Sony Movies
     1032, // Spike
     5252, // TalkingPictures
     5607, // Travel Channel
-    1048, // True Crime
+    5414, // tru TV
     4266, // True Ent
     3643, // True Movies
-    2305, // YESTERDAY
+    2305  // YESTERDAY
   ];
   Pull(channels.join(","));
 }
