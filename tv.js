@@ -42,8 +42,10 @@ function TV(data) {
   }
   function ComputeMatrix(p, t) {
     var i, item, matrix = [];
-    for (i = Object.keys(data.channels).length; i >= 0; --i) {
-      matrix.push([{ lbound: 0, ubound: t.length }]);
+    for (i of Object.values(data.channels)) {
+      while (matrix.length <= i.order + 1) {
+        matrix.push([{ lbound: 0, ubound: t.length }]);
+      }
     }
     var prev = null;
     var lbound = 0;
@@ -96,10 +98,10 @@ function TV(data) {
     if (p.rating) {
       extra.push(p.rating);
     }
-    if (extra.length) {
-      return "<div class='extra'>(" + extra.join(", ") + ")</div>";
+    if (extra.length === 0) {
+      extra.push(data.genres[p.genre || "0"].name);
     }
-    return "";
+    return "<div class='extra'>(" + extra.join(", ") + ")</div>";
   }
   function GetWhen(p) {
     return LocalTime(p.lbound) + " to " + LocalTime(p.ubound).slice(-5) + ", " + p.minutes + "mins";
@@ -140,7 +142,7 @@ function TV(data) {
     return header;
   }
   function AddChannelHeader(tr, channel) {
-    var genre = data.genres[channel.epggenre];
+    var genre = data.genres[channel.epggenre || 0];
     var cell = tr.insertCell();
     cell.className = genre.id + " " + channel.id;
     cell.title = channel.name + "\n" + genre.name;
@@ -240,15 +242,48 @@ function TV(data) {
       td.innerHTML += html;
     }
   }
+  function DisplayNew() {
+    table.className = "by-new";
+    var programme = {};
+    var i, m, p;
+    for (i = 0; i < data.programmes.length; ++i) {
+      p = data.programmes[i];
+      if (p.name.toUpperCase().slice(0, 4) === "NEW:") {
+        ComputeTime(p);
+        m = programme[p.name];
+        if (!m) {
+          m = programme[p.name] = [];
+        }
+        m.push(p);
+      }
+    }
+    programme = Object.values(programme);
+    programme.sort(function (a, b) { return a[0].start.localeCompare(b[0].start); });
+    for (i = 0; i < programme.length; ++i) {
+      m = programme[i];
+      p = m[0];
+      var tr = tbody.insertRow();
+      AddChannelHeader(tr, data.channels[p.channelid]);
+      var td = tr.insertCell();
+      var html = "<span>" + p.name + "</span>" + GetExtra(p) + "<div class='description'>" + p.description + "</div>";
+      for (var j = 0; j < m.length; ++j) {
+        html += "<div class='when'>" + GetWhen(m[j]) + "</div>";
+      }
+      td.innerHTML += html;
+    }
+  }
   switch (window.location.search.substring(1).toLowerCase()) {
     case "rows":
       DisplayRows();
+      break;
+    case "columns":
+      DisplayColumns();
       break;
     case "movies":
       DisplayMovies();
       break;
     default:
-      DisplayColumns();
+      DisplayNew();
       break;
   }
 }

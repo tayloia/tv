@@ -196,28 +196,27 @@ if (process.argv.length > 2) {
     2085, // BBC NEWS HD
     3605, // horror channel
     1065, // BLAZE
-    4610, // CBS Action
     3617, // CBS Drama
+    4610, // CBS Justice (Action)
     3352, // CBS Reality
     2202, // Challenge
     2306, // Dave
     2612, // Drama
     3590, // Food Network
     5415, // Forces TV
-    3708, // movies4men
+    2301, // HGTV
     1036, // Paramount
     5500, // PBS America
     1832, // Pick
     6761, // QUEST
     2411, // Quest Red
     2325, // Really
+    4266, // Sony Channel (True Ent)
+    3708, // Sony Action (movies4men)
+    3643, // Sony Classic (True Movies)
     3709, // Sony Movies
-    1032, // Spike
     5252, // TalkingPictures
-    5607, // Travel Channel
-    5414, // tru TV
-    4266, // True Ent
-    3643, // True Movies
+    1872, // Together
     2305  // YESTERDAY
   ];
   Pull(channels.join(","));

@@ -16,7 +16,7 @@
       table-layout: fixed;
       width: 100%;
     }
-    .by-movies {
+    .by-movies, .by-new {
       border-collapse: separate;
       border-spacing: 1ex;
       table-layout: fixed;
@@ -41,7 +41,7 @@
       text-align: center;
       width: 6em;
     }
-    .by-movies td + td {
+    .by-movies td + td, .by-new td + td {
       background-color: hsl(50,100%,90%);
       border: 1px solid hsl(50,100%,40%);
       padding: 1ex;
@@ -53,7 +53,7 @@
     .by-columns td[class*=" channel-"] {
       height: 50px;
     }
-    .by-movies td[class*=" channel-"] {
+    .by-movies td[class*=" channel-"], .by-new td[class*=" channel-"] {
       width: 90px;
       height: 50px;
     }
@@ -106,6 +106,10 @@
       font-size: 150%;
       text-decoration: none;
     }
+    .by-new td span {
+      color: blue;
+      font-size: 150%;
+    }
     .extra {
       display: none;
       color: hsl(50,100%,35%);
@@ -125,7 +129,7 @@
       padding-top: 1em;
       font-size: 75%;
     }
-    .by-movies .extra {
+    .by-movies .extra, .by-new .extra {
       display: inline-block;
       padding-left: 0.4em;
     }
@@ -190,6 +194,9 @@
     td[class*=" channel-cbs-drama"] {
       background-image: url("img/cbsdrama.png");
     }
+    td[class*=" channel-cbs-justice"] {
+      background-image: url("img/cbsjustice.png");
+    }
     td[class*=" channel-cbs-reality"] {
       background-image: url("img/cbsreality.png");
     }
@@ -216,6 +223,9 @@
     }
     td[class*=" channel-forces-tv"] {
       background-image: url("img/forcestv.png");
+    }
+    td[class*=" channel-hgtv"] {
+      background-image: url("img/hgtv.png");
     }
     td[class*=" channel-horror-channel"] {
       background-image: url("img/horrorchannel.png");
@@ -279,6 +289,9 @@
     }
     td[class*=" channel-talkingpictures"] {
       background-image: url("img/talkingpicturestv.png");
+    }
+    td[class*=" channel-together"] {
+      background-image: url("img/together.png");
     }
     td[class*=" channel-travel-channel"] {
       background-image: url("img/travelchannel.png");
