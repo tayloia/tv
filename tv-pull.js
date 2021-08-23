@@ -1,86 +1,12 @@
 function Pull(username, password, lineup) {
   "use strict";
 
-  const HOSTNAME = "json.schedulesdirect.org";
-  const API = "/20141201/";
-  const CHANNELS = {
-    1: "BBC1EAST/BBC One East",
-    2: "BBC2/BBC Two",
-    3: "ITV1ANG/ITV1 (Anglia)",
-    4: "C4/Channel 4",
-    5: "CH5/Channel 5",
-    6: "ITV2/ITV2",
-    7: "THACAUK/That's Cambridge TV",
-    9: "BBC4/BBC Four",
-    10: "ITVTHREE/ITV3",
-    11: "SKYART1/Sky Arts",
-    12: "QUEST/Quest",
-    13: "E4/E4",
-    14: "FILM4UK/Film4",
-    16: "QVCUK/QVC (European)",
-    17: "REALLY/Really UKTV",
-    18: "MORE4/More 4",
-    19: "DAVE/Dave",
-    20: "DRAMAUK/Drama",
-    21: "5USA/5USA",
-    22: "IDLFV/Ideal World",
-    23: "DAVEJV/Dave Ja Vu",
-    25: "ITV4/ITV4",
-    26: "YESTDAY/Yesterday",
-    27: "ITVBE/ITV BE",
-    30: "4MUSIC/4Music",
-    31: "5ST/5 Star",
-    32: "PARNSVM/Paramount Network",
-    33: "GRETMOV/Great Movies",
-    35: "PICKTV/Pick TV",
-    36: "QVCBEAU/QVC Beauty",
-    37: "QVCSTFV/QVC Style",
-    38: "DMAXE/DMAX",
-    39: "QREDUK/Quest Red",
-    40: "CBSJUVM/CBS Justice",
-    41: "GRTMACT/Great Movies Action",
-    42: "FOODNET/Food Network",
-    43: "HGTVUK/HGTV",
-    44: "GEMTVFV/Gems TV",
-    47: "CHALL/Challenge TV",
-    48: "4SEVEN/4Seven",
-    49: "GREATUK/Great TV",
-    50: "JEWELCH/The Jewellery Channel",
-    51: "GRTMCL/Great Movies Classic",
-    55: "5SELECT/5SELECT",
-    56: "SMTSNSD/Smithsonian Channel SD",
-    63: "BLZEFV/Blaze",
-    64: "FREESPO/Free Sports",
-    65: "TBNUK/TBN UK",
-    66: "CBSRELT/CBS Reality",
-    67: "CBSDRFV/CBS Drama",
-    68: "HORROR/Horror Channel",
-    71: "JEWELMK/Jewellery Maker",
-    72: "SHOPQUA/Shopping Quarter",
-    76: "NOW80UK/Now 80s",
-    77: "TCCUK/TCC",
-    81: "TALKPIC/Talking Pictures TV",
-    82: "TOGETUK/Together",
-    84: "PBSUKVM/PBS",
-    91: "THATGOLD/That's TV Gold",
-    94: "IDEALEX/Ideal Extra",
-    95: "CREATFV/Create and Craft",
-    96: "BRITFRC/British Forces TV",
-    101: "BBC1LDH/BBC One HD (London)",
-    102: "BBC2HD/BBC Two HD",
-    103: "ITV1HDS/ITV1 HD (Meridian, Anglia)",
-    104: "C4HD/Channel 4 HD",
-    105: "CH5HD/Channel 5 HD",
-    106: "BBC4HD/BBC Four HD",
-    107: "BBCNWHD/BBC News HD",
-    111: "QVCUKHD/QVC HD",
-    112: "QVCBHFV/QVC Beauty HD",
-    113: "RTUKHD/RT HD",
-    114: "QUESHDV/Quest HD",
-  };
-
   const https = require("https");
   const crypto = require("crypto");
+  const zlib = require("zlib");
+
+  const HOSTNAME = "json.schedulesdirect.org";
+  const API = "/20141201/";
 
   function Hash() {
     var sha = crypto.createHash("sha1");
@@ -91,11 +17,13 @@ function Pull(username, password, lineup) {
   function Print(label, json) {
     try {
       json = JSON.stringify(JSON.parse(json), null, 2);
-    } catch (e) {}
+    } catch (e) {
+      /*NOP*/;
+    }
     console.log(`${label}: ${json}`);
   }
 
-  function Request(method, hostname, path, token, payload, callback) {
+  function Request(method, hostname, path, token, payload, gzip, callback) {
     var options = {
       hostname: hostname,
       port: 443,
@@ -110,40 +38,75 @@ function Pull(username, password, lineup) {
       options.headers["Content-Type"] = "application/json";
       options.headers["Content-Length"] = payload.length;
     }
+    if (gzip) {
+      // See https://github.com/SchedulesDirect/JSON-Service/wiki/API-20141201#download-program-information
+      options.headers["Accept-Encoding"] = "deflate,gzip";
+    }
+    callback = callback || (x => Print(`${method} ${path}`, x));
     var request = https.request(options, response => {
-      var data = "";
-      response.on("data", chunk => data += chunk);
-      response.on("end", () => callback ? callback(data) : Print(`${method} ${path}`, data));
+      var data = [];
+      if (gzip) {
+        var gunzip = zlib.createGunzip();
+        gunzip.on("data", chunk => data.push(chunk.toString()));
+        gunzip.on("end", () => callback(data.join("")));
+        gunzip.on("error", error => console.error(`GZIP ERROR: ${method} ${path}: ${error}`));
+        response.pipe(gunzip);
+      } else {
+        response.on("data", chunk => data.push(chunk));
+        response.on("end", () => callback(data.join("")));
+      }
     });
-    request.on("error", error => {
-      console.error(`ERROR: ${method} ${path}: ${error}`);
-    });
+    request.on("error", error => console.error(`ERROR: ${method} ${path}: ${error}`));
     if (payload) {
       request.write(payload);
     }
     request.end();
   }
 
-  function Post(path, token, payload, callback) {
-    Request("POST", HOSTNAME, API + path, token, payload, callback);
+  function Post(path, token, payload, gzip, callback) {
+    Request("POST", HOSTNAME, API + path, token, payload, gzip, callback);
   }
 
   function Put(path, token, callback) {
-    Request("PUT", HOSTNAME, API + path, token, null, callback);
+    Request("PUT", HOSTNAME, API + path, token, null, false, callback);
   }
 
   function Get(path, token, callback) {
-    Request("GET", HOSTNAME, API + path, token, null, callback);
+    Request("GET", HOSTNAME, API + path, token, null, false, callback);
   }
 
-  function OnSchedules(stations, schedules, token) {
-    process.stdout.write(JSON.stringify(schedules, null, 2));
+  function OnPrograms(date, stations, movies, programs, token) {
+    process.stdout.write("TV(");
+    process.stdout.write(JSON.stringify({
+      date: date,
+      stations: stations,
+      movies: movies,
+      programs: programs,
+      token: token
+    }, null, 2));
+    process.stdout.write(");");
+  }
+
+  function OnSchedules(date, stations, schedules, token) {
+    var movies = {};
+    for (var s of schedules) {
+      for (var p of s.programs) {
+        if (p.programID.slice(0, 2) === "MV") {
+          // Example: '{ "programID": "MV037855620000", "airDateTime": "2021-09-09T21:00:00Z", "duration": 7200, "md5": "2zZfih7MwnoelMIJfQe5wQ" }'
+          var movie = movies[p.programID];
+          if (!movie) {
+            movie = movies[p.programID] = [];
+          }
+          movie.push({ station: s.stationID, start: p.airDateTime, duration: p.duration });
+        }
+      }
+    }
+    Post("programs", token, JSON.stringify(Object.keys(movies)), true, json => OnPrograms(date, stations, movies, JSON.parse(json), token));
   }
 
   function OnStations(date, stations, token) {
-    //Print("STATIONS", JSON.stringify(Object.fromEntries(stations.map(x => [x.channel, `${x.callsign}/${x.name}`]))));
     var ids = stations.map(x => { return { stationID: x.id }; });
-    Post("schedules", token, JSON.stringify(ids), json => OnSchedules(stations, JSON.parse(json), token));
+    Post("schedules", token, JSON.stringify(ids), false, json => OnSchedules(date, stations, JSON.parse(json), token));
   }
 
   function OnToken(date, token) {
@@ -163,8 +126,8 @@ function Pull(username, password, lineup) {
     OnToken(new Date(data.datetime), data.token);
   }
 
-  //Post("token", null, JSON.stringify({ "username": username, "password": Hash(password) }), OnTokenResponse);
-  OnToken(new Date(), "33b549b263a2cf1173df28ee1fa21e0c");
+  Post("token", null, JSON.stringify({ "username": username, "password": Hash(password) }), OnTokenResponse);
+  //OnToken(new Date(), "33b549b263a2cf1173df28ee1fa21e0c");
 }
 
 Pull(process.argv[2], process.argv[3], process.argv[4]);
