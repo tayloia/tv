@@ -21,7 +21,7 @@ function Pull(ids) {
         if (res.statusCode === 200) {
           callback(JSON.parse(json));
         } else {
-          console.warning("Warning:", res.statusCode, "for", request);
+          console.warn("Warning:", res.statusCode, "for", request);
           callback(null);
         }
       });
