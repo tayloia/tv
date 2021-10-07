@@ -33,17 +33,24 @@ function Pull(username, password, lineup) {
       // See https://github.com/SchedulesDirect/JSON-Service/wiki/API-20141201#download-program-information
       options.headers["Accept-Encoding"] = "deflate,gzip";
     }
+    process.stderr.write(`https.request ${JSON.stringify(options, null, 2)}\n`);
     var request = https.request(options, response => {
       var data = [];
       if (gzip) {
         var gunzip = zlib.createGunzip();
         gunzip.on("data", chunk => data.push(chunk.toString()));
-        gunzip.on("end", () => callback(data.join("")));
+        gunzip.on("end", () => {
+          process.stderr.write(`GZIP response ${JSON.stringify(data.join(""), null, 2)}\n`);
+          callback(data.join(""));
+        });
         gunzip.on("error", error => console.error(`GZIP ERROR: ${method} ${path}: ${error}`));
         response.pipe(gunzip);
       } else {
         response.on("data", chunk => data.push(chunk));
-        response.on("end", () => callback(data.join("")));
+        response.on("end", () => {
+          process.stderr.write(`raw response ${JSON.stringify(data.join(""), null, 2)}\n`);
+          callback(data.join(""));
+        });
       }
     });
     request.on("error", error => console.error(`ERROR: ${method} ${path}: ${error}`));
